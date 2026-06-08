@@ -97,6 +97,28 @@ def main():
                                al.get("treinos_mes") or "—", al.get("prs") or "0")
             html = re.sub(r'<div class="hero-meta">.*?</div>\s*</section>',
                           lambda m: hm + "\n  </section>", html, count=1, flags=re.S)
+        # metas do aluno (seção "Metas") — coluna "metas" na aba Alunos.
+        # Formato: uma meta por item, separadas por ";" ou quebra de linha.
+        # Progresso opcional após "=" (0 a 100). Ex: "Agachamento 20 kg=30; Ganhar 500 g=0"
+        metas_raw = al.get("metas", "").strip()
+        if metas_raw:
+            metas = []
+            for it in re.split(r"[;\n]+", metas_raw):
+                it = it.strip()
+                if not it:
+                    continue
+                if "=" in it:
+                    nome_m, pct = it.rsplit("=", 1)
+                    try:
+                        pct = int(float(pct.strip()))
+                    except ValueError:
+                        nome_m, pct = it, 0
+                    metas.append({"name": nome_m.strip(), "pct": max(0, min(100, pct))})
+                else:
+                    metas.append({"name": it, "pct": 0})
+            goals_js = "store.get('lc_goals'," + json.dumps(metas, ensure_ascii=False) + ")"
+            html = re.sub(r"store\.get\('lc_goals',\[.*?\]\)", lambda m: goals_js, html, count=1, flags=re.S)
+
         novo_treino = "var TREINO = " + json.dumps(treino, ensure_ascii=False, separators=(",", ":")) + ";"
         html = re.sub(r"^var TREINO = .*;$", lambda m: novo_treino, html, count=1, flags=re.M)
 

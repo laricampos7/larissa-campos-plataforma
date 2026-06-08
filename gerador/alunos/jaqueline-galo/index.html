@@ -359,10 +359,10 @@ textarea:focus{outline:none;border-color:var(--brand)}
 
   <!-- HERO: FASE ATUAL -->
   <section class="hero">
-    <div class="hero-tag">Iniciante · Treinos A, B e C · Início 01/06/2025</div>
+    <div class="hero-tag">Foco: ganho de massa muscular · Treinos A, B e C</div>
     <h2>GANHO DE MASSA MUSCULAR</h2>
-    <p>Iniciante, treinando 3x por semana com foco em ganho de massa muscular. Evolução excelente desde 20/05/2025: de 78,1 kg e 32,7% de gordura para 64,2 kg e 18,8% (07/05/2026) — cerca de 14 kg de gordura a menos mantendo a massa magra (~52 kg) e 9,5 cm de cintura reduzidos. Meta: 60 kg e 18% de gordura. Agora o foco é ganhar massa muscular com técnica impecável e progressão gradual.</p>
-    <div class="hero-meta"><div><span>Próximo check-in</span><b>Junho/2026</b></div><div><span>Aderência (30d)</span><b style="color:var(--pos)">—</b></div><div><span>Treinos no mês</span><b>—</b></div><div><span>PRs no ciclo</span><b>0</b></div></div>
+    <p>Evolução excelente desde 05/2025: saiu de 32% para 18,8% de gordura, com ótima recomposição corporal. Não está mais na fase inicial — agora o foco é o ganho de massa muscular, com técnica impecável e progressão de carga. Treinos A (inferiores), B (costas, ombro e glúteos) e C (abdômen, tríceps e pernas).</p>
+    <div class="hero-meta"><div><span>Próximo check-in</span><b>Junho/2026</b></div><div><span>Aderência (30d)</span><b style="color:var(--pos)">—</b></div><div><span>Treinos no mês</span><b>0/8</b></div><div><span>PRs no ciclo</span><b>Não medido</b></div></div>
   </section>
 
   <!-- TABS -->
@@ -734,11 +734,7 @@ const store={
 };
 
 // ============ METAS EDITÁVEIS (individuais por cliente) ============
-let goals = store.get('lc_goals',[
-  {name:'Reduzir % gordura para 12%',pct:78},
-  {name:'Supino 110 kg',pct:85},
-  {name:'Corrida 5 km abaixo de 25 min',pct:60}
-]);
+let goals = store.get('lc_goals',[{"name": "Ganhar 500 g de massa muscular", "pct": 0}, {"name": "Agachamento sumô com 20 kg", "pct": 0}, {"name": "Fazer 8 treinos no mês", "pct": 0}]);
 function saveGoals(){store.set('lc_goals',goals);}
 function renderGoals(){
   const c=document.getElementById('metasContainer');
