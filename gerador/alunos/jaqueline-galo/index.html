@@ -362,7 +362,7 @@ textarea:focus{outline:none;border-color:var(--brand)}
     <div class="hero-tag">Foco: ganho de massa muscular · Treinos A, B e C</div>
     <h2>GANHO DE MASSA MUSCULAR</h2>
     <p>Evolução excelente desde 05/2025: saiu de 32% para 18,8% de gordura, com ótima recomposição corporal. Não está mais na fase inicial — agora o foco é o ganho de massa muscular, com técnica impecável e progressão de carga. Treinos A (inferiores), B (costas, ombro e glúteos) e C (abdômen, tríceps e pernas).</p>
-    <div class="hero-meta"><div><span>Próximo check-in</span><b>Junho/2026</b></div><div><span>Aderência (30d)</span><b style="color:var(--pos)">—</b></div><div><span>Treinos no mês</span><b>0/8</b></div><div><span>PRs no ciclo</span><b>Não medido</b></div></div>
+    <div class="hero-meta"><div><span>Próximo check-in</span><b>Junho/2026</b></div><div><span>Aderência (30d)</span><b style="color:var(--pos)">—</b></div><div><span>Treinos no mês</span><b>0/8</b></div><div><span>% Gordura</span><b>18,8<small>%</small></b></div></div>
   </section>
 
   <!-- TABS -->
@@ -386,12 +386,7 @@ textarea:focus{outline:none;border-color:var(--brand)}
       </div>
     </div>
 
-    <div class="grid g4" style="margin-bottom:16px">
-      <div class="card glow kpi"><h3>PESO ATUAL</h3><b>78,4<small style="font-family:Sora;font-size:14px"> kg</small></b><span class="delta up">▼ 4,1 kg</span><small>desde o início</small></div>
-      <div class="card glow kpi"><h3>% GORDURA</h3><b>14,2<small style="font-family:Sora;font-size:14px"> %</small></b><span class="delta up">▼ 5,3 pts</span><small>bioimpedância</small></div>
-      <div class="card glow kpi"><h3>MASSA MAGRA</h3><b>67,3<small style="font-family:Sora;font-size:14px"> kg</small></b><span class="delta up">▲ 2,8 kg</span><small>ganho líquido</small></div>
-      <div class="card glow kpi"><h3>SUPINO 1RM</h3><b>102<small style="font-family:Sora;font-size:14px"> kg</small></b><span class="delta up">▲ 14 kg</span><small>estimado</small></div>
-    </div>
+    <div class="grid g4" id="kpiTop" style="margin-bottom:16px"><div class="card glow kpi"><h3>PESO ATUAL</h3><b>64,2<small style="font-family:Sora;font-size:14px"> kg</small></b><span class="delta up">▼ 13,9 kg</span><small>desde o início</small></div><div class="card glow kpi"><h3>% GORDURA</h3><b>18,8<small style="font-family:Sora;font-size:14px"> %</small></b><span class="delta up">▼ 13,9 pts</span><small>avaliação</small></div><div class="card glow kpi"><h3>MASSA MAGRA</h3><b>52,1<small style="font-family:Sora;font-size:14px"> kg</small></b><span class="delta" style="color:var(--txt-dim)">▼ 0,4 kg</span><small>músculo</small></div><div class="card glow kpi"><h3>GORDURA (KG)</h3><b>12,1<small style="font-family:Sora;font-size:14px"> kg</small></b><span class="delta up">▼ 13,5 kg</span><small>massa gorda</small></div><!--/kpiTop--></div>
 
     <div class="grid g2">
       <div class="card glow gami">
@@ -552,30 +547,9 @@ textarea:focus{outline:none;border-color:var(--brand)}
     <h2 class="section-title">Sua evolução</h2>
     <p class="sub">Cada ponto conta uma história. Veja, semana a semana, o resultado do seu trabalho.</p>
 
-    <div class="card glow" style="margin-bottom:16px">
-      <h3>COMPOSIÇÃO CORPORAL · ÚLTIMAS 12 SEMANAS</h3>
-      <div class="chart-legend">
-        <span><i class="dot" style="background:var(--brand)"></i>Peso (kg)</span>
-        <span><i class="dot" style="background:var(--pos)"></i>% Gordura</span>
-      </div>
-      <div class="chart-wrap" id="chartBody"></div>
-    </div>
-
     <div class="grid g2">
-      <div class="card glow">
-        <h3>RECORDES DE FORÇA (1RM ESTIMADO)</h3>
-        <div class="meas-row"><span class="l">Supino reto</span><div class="v"><b>102 kg</b><small class="up" style="background:color-mix(in srgb,var(--pos) 18%,transparent);color:var(--pos)">+14</small></div></div>
-        <div class="meas-row"><span class="l">Agachamento</span><div class="v"><b>140 kg</b><small class="up" style="background:color-mix(in srgb,var(--pos) 18%,transparent);color:var(--pos)">+22</small></div></div>
-        <div class="meas-row"><span class="l">Levantamento terra</span><div class="v"><b>175 kg</b><small class="up" style="background:color-mix(in srgb,var(--pos) 18%,transparent);color:var(--pos)">+25</small></div></div>
-        <div class="meas-row"><span class="l">Desenvolvimento</span><div class="v"><b>62 kg</b><small class="up" style="background:color-mix(in srgb,var(--pos) 18%,transparent);color:var(--pos)">+9</small></div></div>
-      </div>
-      <div class="card glow">
-        <h3>MEDIDAS (cm) · INÍCIO → AGORA</h3>
-        <div class="meas-row"><span class="l">Cintura</span><div class="v"><b>84</b><small class="up" style="background:color-mix(in srgb,var(--pos) 18%,transparent);color:var(--pos)">−9 cm</small></div></div>
-        <div class="meas-row"><span class="l">Braço</span><div class="v"><b>40</b><small class="up" style="background:color-mix(in srgb,var(--pos) 18%,transparent);color:var(--pos)">+3 cm</small></div></div>
-        <div class="meas-row"><span class="l">Coxa</span><div class="v"><b>61</b><small class="up" style="background:color-mix(in srgb,var(--pos) 18%,transparent);color:var(--pos)">+4 cm</small></div></div>
-        <div class="meas-row"><span class="l">Peitoral</span><div class="v"><b>106</b><small class="up" style="background:color-mix(in srgb,var(--pos) 18%,transparent);color:var(--pos)">+5 cm</small></div></div>
-      </div>
+      <div class="card glow" id="evalComp"><h3>COMPOSIÇÃO CORPORAL · INÍCIO → AGORA</h3><div class="meas-row"><span class="l">Peso<i style="color:var(--txt-faint);font-style:normal;font-size:11px"> · meta 60 kg</i></span><div class="v"><b>64,2 kg</b><small class="up" style="background:color-mix(in srgb,var(--pos) 18%,transparent);color:var(--pos)">▼ 13,9 kg</small></div></div><div class="meas-row"><span class="l">% Gordura<i style="color:var(--txt-faint);font-style:normal;font-size:11px"> · meta 18 %</i></span><div class="v"><b>18,8 %</b><small class="up" style="background:color-mix(in srgb,var(--pos) 18%,transparent);color:var(--pos)">▼ 13,9 pts</small></div></div><div class="meas-row"><span class="l">Massa magra</span><div class="v"><b>52,1 kg</b><small class="up" style="color:var(--txt-faint)">▼ 0,4 kg</small></div></div><div class="meas-row"><span class="l">Gordura (kg)</span><div class="v"><b>12,1 kg</b><small class="up" style="background:color-mix(in srgb,var(--pos) 18%,transparent);color:var(--pos)">▼ 13,5 kg</small></div></div><!--/evalComp--></div>
+      <div class="card glow" id="evalMed"><h3>MEDIDAS (cm) · INÍCIO → AGORA</h3><div class="meas-row"><span class="l">Cintura</span><div class="v"><b>75,5 cm</b><small class="up" style="background:color-mix(in srgb,var(--pos) 18%,transparent);color:var(--pos)">▼ 9,5 cm</small></div></div><div class="meas-row"><span class="l">Abdômen</span><div class="v"><b>84 cm</b><small class="up" style="background:color-mix(in srgb,var(--pos) 18%,transparent);color:var(--pos)">▼ 15,5 cm</small></div></div><div class="meas-row"><span class="l">Braço</span><div class="v"><b>29,5 cm</b><small class="up" style="color:var(--txt-faint)">▼ 4 cm</small></div></div><div class="meas-row"><span class="l">Coxa</span><div class="v"><b>56 cm</b><small class="up" style="color:var(--txt-faint)">▼ 5,5 cm</small></div></div><!--/evalMed--></div>
     </div>
 
     <h3 style="margin:26px 0 14px;color:var(--txt-dim);font-size:13px">REGISTRO FOTOGRÁFICO MENSAL</h3>
@@ -1074,7 +1048,7 @@ function drawSuperc(){
 // ============ GRÁFICO COMPOSIÇÃO CORPORAL ============
 function drawChart(){
   const wrap=document.getElementById('chartBody');
-  if(wrap.dataset.done)return; wrap.dataset.done=1;
+  if(!wrap||wrap.dataset.done)return; wrap.dataset.done=1;
   const W=wrap.clientWidth||700,H=260,pad=38;
   const peso=[82.5,82,81.3,80.8,80.1,79.6,79.3,79,78.7,78.6,78.5,78.4];
   const bf=[19.5,19,18.4,17.8,17.1,16.6,16.1,15.6,15.1,14.7,14.4,14.2];

@@ -30,6 +30,107 @@ def linhas(ws):
         out.append({head[i]: ("" if r[i] is None else str(r[i]).strip()) for i in range(len(head))})
     return out
 
+# ---------- Avaliação física (aba "Avaliacao") ----------
+def num(s):
+    """'78,1' -> 78.1 ; vazio/invalido -> None"""
+    s = str(s).strip().replace(",", ".")
+    if not s:
+        return None
+    try:
+        return float(s)
+    except ValueError:
+        return None
+
+def fmt(v, dec=1):
+    """78.1 -> '78,1' ; 29.0 -> '29' (inteiro sem casas)"""
+    if v is None:
+        return ""
+    if abs(v - round(v)) < 1e-9:
+        return str(int(round(v)))
+    return ("%.*f" % (dec, v)).replace(".", ",")
+
+GOOD_STYLE = "background:color-mix(in srgb,var(--pos) 18%,transparent);color:var(--pos)"
+DIM_STYLE = "color:var(--txt-faint)"
+
+def _delta(r):
+    """retorna (texto_badge, melhorou:bool) ou (None, None) se sem dados de início/atual"""
+    ini, at = num(r.get("inicio", "")), num(r.get("atual", ""))
+    if ini is None or at is None:
+        return None, None
+    unidade = (r.get("unidade", "") or "").strip()
+    direcao = ((r.get("direcao", "") or "baixo")).strip().lower()
+    d = at - ini
+    arrow = "▲" if d > 0 else ("▼" if d < 0 else "•")
+    melhorou = (d < 0 and direcao == "baixo") or (d > 0 and direcao == "alto")
+    unid = "pts" if unidade == "%" else unidade
+    txt = arrow + " " + fmt(abs(d)) + ((" " + unid) if unid else "")
+    return txt, melhorou
+
+def meas_row(r):
+    label = (r.get("metrica", "") or "").strip()
+    unidade = (r.get("unidade", "") or "").strip()
+    meta = (r.get("meta", "") or "").strip()
+    val = fmt(num(r.get("atual", ""))) + ((" " + unidade) if unidade else "")
+    lbl = label
+    if meta:
+        lbl += ('<i style="color:var(--txt-faint);font-style:normal;font-size:11px">'
+                ' · meta ' + meta + ((" " + unidade) if unidade else "") + '</i>')
+    txt, melhorou = _delta(r)
+    badge = ""
+    if txt:
+        style = GOOD_STYLE if melhorou else DIM_STYLE
+        badge = '<small class="up" style="' + style + '">' + txt + '</small>'
+    return ('<div class="meas-row"><span class="l">' + lbl + '</span>'
+            '<div class="v"><b>' + val + '</b>' + badge + '</div></div>')
+
+def kpi_card(titulo, r, rodape):
+    unidade = (r.get("unidade", "") or "").strip()
+    txt, melhorou = _delta(r)
+    delta = ""
+    if txt:
+        cls = "delta up" if melhorou else "delta"
+        st = "" if melhorou else ' style="color:var(--txt-dim)"'
+        delta = '<span class="' + cls + '"' + st + '>' + txt + '</span>'
+    return ('<div class="card glow kpi"><h3>' + titulo.upper() + '</h3>'
+            '<b>' + fmt(num(r.get("atual", ""))) +
+            '<small style="font-family:Sora;font-size:14px"> ' + unidade + '</small></b>'
+            + delta + '<small>' + rodape + '</small></div>')
+
+def aplicar_avaliacao(html, rows):
+    """Injeta composição corporal + circunferências (e remove o gráfico de exemplo)."""
+    comp = [r for r in rows if "compos" in (r.get("secao", "") or "").lower()]
+    med = [r for r in rows if r not in comp]
+
+    if comp:
+        inner = "<h3>COMPOSIÇÃO CORPORAL · INÍCIO → AGORA</h3>" + "".join(meas_row(r) for r in comp)
+        bloco = '<div class="card glow" id="evalComp">' + inner + '<!--/evalComp--></div>'
+        html = re.sub(r'<div class="card glow" id="evalComp">.*?<!--/evalComp--></div>',
+                      lambda m: bloco, html, count=1, flags=re.S)
+        # KPIs do topo (Início) a partir da composição
+        idx = {(r.get("metrica", "") or "").strip().lower(): r for r in comp}
+        defs = [("Peso atual", "peso", "desde o início"),
+                ("% Gordura", "% gordura", "avaliação"),
+                ("Massa magra", "massa magra", "músculo"),
+                ("Gordura (kg)", "gordura (kg)", "massa gorda")]
+        cards = [kpi_card(t, idx[k], rod) for (t, k, rod) in defs if k in idx]
+        if len(cards) >= 3:
+            kpi = ('<div class="grid g4" id="kpiTop" style="margin-bottom:16px">'
+                   + "".join(cards) + '<!--/kpiTop--></div>')
+            html = re.sub(r'<div class="grid g4" id="kpiTop".*?<!--/kpiTop--></div>',
+                          lambda m: kpi, html, count=1, flags=re.S)
+
+    if med:
+        inner = "<h3>MEDIDAS (cm) · INÍCIO → AGORA</h3>" + "".join(meas_row(r) for r in med)
+        bloco = '<div class="card glow" id="evalMed">' + inner + '<!--/evalMed--></div>'
+        html = re.sub(r'<div class="card glow" id="evalMed">.*?<!--/evalMed--></div>',
+                      lambda m: bloco, html, count=1, flags=re.S)
+
+    # remove o gráfico de exemplo (dados fictícios de 12 semanas)
+    html = re.sub(r'\s*<div class="card glow" id="evalChart".*?<!--/evalChart--></div>',
+                  "", html, count=1, flags=re.S)
+    return html
+
+
 def main():
     if not os.path.exists(XLSX):
         sys.exit("Planilha não encontrada: " + XLSX)
@@ -43,6 +144,12 @@ def main():
     if "Biblioteca" in wb.sheetnames:
         for b in linhas(wb["Biblioteca"]):
             biblio[b.get("exercicio", "").lower()] = b
+    avaliacoes = {}
+    if "Avaliacao" in wb.sheetnames:
+        for a in linhas(wb["Avaliacao"]):
+            nome_a = (a.get("aluno", "") or "").strip().lower()
+            if nome_a:
+                avaliacoes.setdefault(nome_a, []).append(a)
 
     template = open(TEMPLATE, encoding="utf-8").read()
     os.makedirs(OUT, exist_ok=True)
@@ -86,15 +193,24 @@ def main():
         if al.get("bloco"):     html = html.replace("Mesociclo atual · Bloco 3 de 4", al["bloco"])
         if al.get("fase"):      html = html.replace("<h2>FASE DE FORÇA</h2>", "<h2>%s</h2>" % al["fase"])
         if al.get("descricao"): html = html.replace(DESC_PADRAO, al["descricao"])
-        # números do topo (check-in / aderência / treinos / PRs)
-        if any(al.get(k) for k in ("proximo_checkin", "aderencia", "treinos_mes", "prs")):
+        # avaliação física da aluna (aba "Avaliacao")
+        aval = avaliacoes.get(nome.lower(), [])
+        gordura_atual = ""
+        for r in aval:
+            if (r.get("metrica", "") or "").strip().lower() == "% gordura":
+                gv = num(r.get("atual", ""))
+                if gv is not None:
+                    gordura_atual = fmt(gv)
+        # números do topo (check-in / aderência / treinos / % gordura)
+        if any(al.get(k) for k in ("proximo_checkin", "aderencia", "treinos_mes")) or gordura_atual:
             hm = ('<div class="hero-meta">'
                   '<div><span>Próximo check-in</span><b>%s</b></div>'
                   '<div><span>Aderência (30d)</span><b style="color:var(--pos)">%s</b></div>'
                   '<div><span>Treinos no mês</span><b>%s</b></div>'
-                  '<div><span>PRs no ciclo</span><b>%s</b></div>'
+                  '<div><span>%% Gordura</span><b>%s</b></div>'
                   '</div>') % (al.get("proximo_checkin") or "—", al.get("aderencia") or "—",
-                               al.get("treinos_mes") or "—", al.get("prs") or "0")
+                               al.get("treinos_mes") or "—",
+                               (gordura_atual + "<small>%</small>") if gordura_atual else "—")
             html = re.sub(r'<div class="hero-meta">.*?</div>\s*</section>',
                           lambda m: hm + "\n  </section>", html, count=1, flags=re.S)
         # metas do aluno (seção "Metas") — coluna "metas" na aba Alunos.
@@ -118,6 +234,10 @@ def main():
                     metas.append({"name": it, "pct": 0})
             goals_js = "store.get('lc_goals'," + json.dumps(metas, ensure_ascii=False) + ")"
             html = re.sub(r"store\.get\('lc_goals',\[.*?\]\)", lambda m: goals_js, html, count=1, flags=re.S)
+
+        # avaliação física → composição corporal + circunferências (e remove o gráfico de exemplo)
+        if aval:
+            html = aplicar_avaliacao(html, aval)
 
         novo_treino = "var TREINO = " + json.dumps(treino, ensure_ascii=False, separators=(",", ":")) + ";"
         html = re.sub(r"^var TREINO = .*;$", lambda m: novo_treino, html, count=1, flags=re.M)
