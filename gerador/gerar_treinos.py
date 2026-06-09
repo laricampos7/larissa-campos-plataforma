@@ -13,6 +13,30 @@ DESC_PADRAO = ("Você está na fase de maior intensidade do seu ciclo. Foco em c
                "progressivas, técnica impecável e recuperação de qualidade. Estamos "
                "construindo o pico do seu desempenho.")
 
+# textinho menor (Sora) dentro dos cards de stat (Volume / Frequência)
+SMALL = '<small style="font-family:Sora;font-size:13px;color:var(--txt-dim)">%s</small>'
+
+def stat_inner(raw, num_suffix):
+    """Conteúdo do <b> de um card de stat a partir do valor da planilha.
+    - vazio       -> None (mantém o padrão do template)
+    - só número   -> "16" + num_suffix  (ex.: '16 séries/grupo', '5x / semana')
+    - número+texto-> número em destaque + resto menor ('2x na semana + beach tênis')
+    - texto livre -> mostrado como está
+    """
+    raw = (raw or "").strip()
+    if not raw:
+        return None
+    if re.fullmatch(r"[\d.,]+", raw):
+        return raw + (SMALL % num_suffix)
+    m = re.match(r"^([\d.,]+\s*x?)\s+(.*)$", raw, re.I)
+    if m:
+        return m.group(1).replace(" ", "") + (SMALL % (" " + m.group(2).strip()))
+    return raw
+
+def nums_in(s):
+    """Todos os números de um texto. '7-8' -> [7,8]; '3x12' -> [3,12]; vazio -> []."""
+    return [float(x.replace(",", ".")) for x in re.findall(r"\d+(?:[.,]\d+)?", str(s or ""))]
+
 def slug(s):
     s = unicodedata.normalize("NFD", str(s)).encode("ascii", "ignore").decode()
     s = re.sub(r"[^a-zA-Z0-9]+", "-", s).strip("-").lower()
@@ -195,6 +219,46 @@ def main():
         if al.get("bloco"):     html = html.replace("Mesociclo atual · Bloco 3 de 4", al["bloco"])
         if al.get("fase"):      html = html.replace("<h2>FASE DE FORÇA</h2>", "<h2>%s</h2>" % al["fase"])
         if al.get("descricao"): html = html.replace(DESC_PADRAO, al["descricao"])
+        # ----- cards de stat da aba Ciclo (Volume / Frequência / Intensidade) -----
+        # Calcula a partir do próprio treino: total de séries na semana e RPE médio.
+        total_series, rpes = 0.0, []
+        for d in treino:
+            for ex in d["exercicios"]:
+                ns = nums_in(ex["series"])
+                if ns:
+                    total_series += ns[0]            # 1º número = nº de séries (ignora "3x12")
+                nr = nums_in(ex["rpe"])
+                if nr:
+                    rpes.append(sum(nr) / len(nr))    # "7-8" vira 7,5
+        auto_vol = int(round(total_series)) if total_series > 0 else None
+        auto_rpe = (sum(rpes) / len(rpes)) if rpes else None
+
+        # Frequência: coluna "frequencia"; se vazia, usa o nº de dias de treino do aluno.
+        freq_html = stat_inner(al.get("frequencia", ""), "x / semana") or (str(len(treino)) + (SMALL % "x / semana"))
+        html = html.replace(
+            '<h3>FREQUÊNCIA</h3><b style="font-family:Anton;font-size:28px">5<small style="font-family:Sora;font-size:13px;color:var(--txt-dim)">x / semana</small></b>',
+            '<h3>FREQUÊNCIA</h3><b style="font-family:Anton;font-size:28px">%s</b>' % freq_html, 1)
+        # Volume: coluna "volume" (manual) tem prioridade; senão, total de séries da semana.
+        vol_html = stat_inner(al.get("volume", ""), " séries/semana")
+        if not vol_html and auto_vol:
+            vol_html = str(auto_vol) + (SMALL % " séries/semana")
+        if vol_html:
+            html = html.replace(
+                '<h3>VOLUME SEMANAL</h3><b style="font-family:Anton;font-size:28px">16<small style="font-family:Sora;font-size:13px;color:var(--txt-dim)"> séries/grupo</small></b>',
+                '<h3>VOLUME SEMANAL</h3><b style="font-family:Anton;font-size:28px">%s</b>' % vol_html, 1)
+        # Intensidade: coluna "intensidade" (manual) tem prioridade; senão, RPE médio; senão "—".
+        intens = (al.get("intensidade", "") or "").strip()
+        if intens:
+            if re.match(r"^[\d.,]", intens):
+                intens = "RPE " + intens
+            intens_html = intens
+        elif auto_rpe is not None:
+            intens_html = "RPE " + fmt(auto_rpe)
+        else:
+            intens_html = "—"
+        html = html.replace(
+            '<h3>INTENSIDADE MÉDIA</h3><b style="font-family:Anton;font-size:28px">RPE 8,5</b>',
+            '<h3>INTENSIDADE MÉDIA</h3><b style="font-family:Anton;font-size:28px">%s</b>' % intens_html, 1)
         # avaliação física da aluna (aba "Avaliacao")
         aval = avaliacoes.get(nome.lower(), [])
         gordura_atual = ""
