@@ -699,7 +699,7 @@ const store={
 };
 
 // ============ METAS EDITÁVEIS (individuais por cliente) ============
-let goals = store.get('lc_goals',[{"name": "Agachamento sumô com 20 kg", "pct": 0}, {"name": "Ganhar 500 g de massa muscular", "pct": 0}]);
+let goals = store.get('lc_goals',[{"name": "Agachamento sumô com 20 kg", "pct": 60}, {"name": "Ganhar 500 g de massa muscular", "pct": 0}]);
 function saveGoals(){store.set('lc_goals',goals);}
 function renderGoals(){
   const c=document.getElementById('metasContainer');
