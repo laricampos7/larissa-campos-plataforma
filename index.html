@@ -730,12 +730,21 @@ const store={
 };
 
 // ============ METAS EDITÁVEIS (individuais por cliente) ============
-let goals = store.get('lc_goals',[
+const METAS_SEED = [
   {name:'Reduzir % gordura para 12%',pct:78},
   {name:'Supino 110 kg',pct:85},
   {name:'Corrida 5 km abaixo de 25 min',pct:60}
-]);
-function saveGoals(){store.set('lc_goals',goals);}
+];
+// assinatura das metas definidas pela treinadora; muda quando ela edita e republica
+const METAS_SIG = METAS_SEED.map(function(g){return g.name;}).join('|');
+let goals;
+if(store.get('lc_goals_sig','')===METAS_SIG){
+  goals = store.get('lc_goals', METAS_SEED);   // metas iguais: mantém o progresso do cliente
+}else{
+  goals = METAS_SEED.map(function(g){return {name:g.name,pct:g.pct};});  // metas novas: adota as da treinadora
+  store.set('lc_goals', goals); store.set('lc_goals_sig', METAS_SIG);
+}
+function saveGoals(){store.set('lc_goals',goals); store.set('lc_goals_sig',METAS_SIG);}
 function renderGoals(){
   const c=document.getElementById('metasContainer');
   if(!goals.length){c.innerHTML='<p class="empty">Nenhuma meta ainda. Clique em “+ Adicionar meta”.</p>';return;}

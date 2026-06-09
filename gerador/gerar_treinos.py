@@ -232,8 +232,8 @@ def main():
                     metas.append({"name": nome_m.strip(), "pct": max(0, min(100, pct))})
                 else:
                     metas.append({"name": it, "pct": 0})
-            goals_js = "store.get('lc_goals'," + json.dumps(metas, ensure_ascii=False) + ")"
-            html = re.sub(r"store\.get\('lc_goals',\[.*?\]\)", lambda m: goals_js, html, count=1, flags=re.S)
+            seed_js = "const METAS_SEED = " + json.dumps(metas, ensure_ascii=False) + ";"
+            html = re.sub(r"const METAS_SEED = \[.*?\];", lambda m: seed_js, html, count=1, flags=re.S)
 
         # avaliação física → composição corporal + circunferências (e remove o gráfico de exemplo)
         if aval:
