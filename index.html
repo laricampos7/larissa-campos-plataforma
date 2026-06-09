@@ -355,7 +355,7 @@ textarea:focus{outline:none;border-color:var(--brand)}
     <p>Você está na fase de maior intensidade do seu ciclo. Foco em cargas progressivas, técnica impecável e recuperação de qualidade. Estamos construindo o pico do seu desempenho.</p>
     <div class="hero-meta">
       <div><span>Próximo check-in</span><b>2<small> dias</small></b></div>
-      <div><span>Aderência (30d)</span><b style="color:var(--pos)">92<small style="color:var(--pos)">%</small></b></div>
+      <div><span>Aderência (30d)</span><b style="color:var(--pos)" id="heroAder">92<small style="color:var(--pos)">%</small></b></div>
       <div><span>Treinos no mês</span><b>18<small>/20</small></b></div>
       <div><span>% Gordura</span><b>14,2<small>%</small></b></div>
     </div>
@@ -725,6 +725,7 @@ function toast(msg){const e=document.getElementById('toast');e.textContent=msg||
 
 // ============ PERSISTÊNCIA (segura) ============
 var STORE_NS = 'demo';   // namespace por aluna — o gerador troca por cada cliente (isola os dados)
+var ADER_MANUAL = '';    // se a treinadora fixar a aderência na planilha, vem aqui; vazio = calcula sozinho pelos treinos marcados
 function nsKey(k){return STORE_NS + '::' + k;}
 const store={
   get(k,def){try{const v=localStorage.getItem(nsKey(k));return v?JSON.parse(v):def;}catch(e){return def;}},
@@ -913,6 +914,20 @@ function markTrain(){var a=gGet('lc_train_days',[]);var t=gToday();if(a.indexOf(
 function gAddPR(){gSet('lc_prs',gGet('lc_prs',0)+1);}
 function gAddCheckin(){gSet('lc_checkins',gGet('lc_checkins',0)+1);}
 function gMetaDone(nome){var d=gGet('lc_metas_list',[]);if(d.indexOf(nome)<0){d.push(nome);gSet('lc_metas_list',d);gSet('lc_metas',d.length);return true;}return false;}
+function updateAderencia(){
+  // Aderência (30d) = treinos marcados nos últimos 30 dias ÷ previstos no período (planned/semana).
+  // Se a treinadora fixou ADER_MANUAL na planilha, usa esse valor; senão calcula sozinho.
+  var el=document.getElementById('heroAder');if(!el)return;
+  var pos='<small style="color:var(--pos)">%</small>';
+  if(String(ADER_MANUAL).trim()!==''){el.innerHTML=String(ADER_MANUAL).trim().replace('%','')+pos;return;}
+  var days=gGet('lc_train_days',[]);
+  var planned=(typeof TREINO!=='undefined'&&TREINO.length)?TREINO.length:0;
+  if(!days.length||!planned){el.innerHTML='—';return;}
+  var cutoff=Date.now()-30*86400000,done=0;
+  days.forEach(function(d){var p=String(d).split('-');var t=new Date(+p[0],+p[1]-1,+p[2]).getTime();if(t>=cutoff)done++;});
+  var pct=Math.max(0,Math.min(100,Math.round(done/(planned*30/7)*100)));
+  el.innerHTML=pct+pos;
+}
 function gStats(){
   var days=gGet('lc_train_days',[]),wks={};days.forEach(function(d){wks[gWk(d)]=1;});
   var cur=Math.floor(Date.now()/(7*86400000)),streak=0,probe=cur;
@@ -946,6 +961,7 @@ function renderGami(){
   if(lv.nx){var sp=lv.nx.x-lv.L.x;fill=Math.max(3,Math.round((xp-lv.L.x)/sp*100));nx='Faltam '+(lv.nx.x-xp)+' XP para '+lv.nx.n;}
   document.getElementById('gXpFill').style.width=fill+'%';
   document.getElementById('gNext').textContent=nx;
+  updateAderencia();
   var shown=gGet('lc_badges',[]);
   document.getElementById('gBadges').innerHTML=BADGES.map(function(b){
     var on=b.cond(s);return '<div class="badge'+(on?' on':'')+'" title="'+esc(b.nome)+': '+esc(b.desc)+'"><span>'+b.ic+'</span><small>'+esc(b.nome)+'</small></div>';

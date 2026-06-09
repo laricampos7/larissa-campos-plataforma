@@ -211,6 +211,12 @@ def main():
         html = template
         # namespace de armazenamento por aluna (isola metas/cargas/fotos/conquistas no navegador)
         html = html.replace("var STORE_NS = 'demo';", "var STORE_NS = '%s';" % slug(nome))
+        # aderência: se a coluna "aderencia" estiver preenchida com um valor real, fixa esse valor;
+        # vazia ou "—" = o app calcula sozinho pelos treinos marcados nos últimos 30 dias (updateAderencia).
+        ader_manual = (al.get("aderencia") or "").strip()
+        if ader_manual in ("—", "-", "–"):
+            ader_manual = ""
+        html = html.replace("var ADER_MANUAL = '';", "var ADER_MANUAL = '%s';" % ader_manual)
         html = html.replace("João Silva", nome)
         # iniciais do avatar
         ini = "".join(w[0] for w in nome.split()[:2]).upper() or "AL"
@@ -271,7 +277,7 @@ def main():
         if any(al.get(k) for k in ("proximo_checkin", "aderencia", "treinos_mes")) or gordura_atual:
             hm = ('<div class="hero-meta">'
                   '<div><span>Próximo check-in</span><b>%s</b></div>'
-                  '<div><span>Aderência (30d)</span><b style="color:var(--pos)">%s</b></div>'
+                  '<div><span>Aderência (30d)</span><b style="color:var(--pos)" id="heroAder">%s</b></div>'
                   '<div><span>Treinos no mês</span><b>%s</b></div>'
                   '<div><span>%% Gordura</span><b>%s</b></div>'
                   '</div>') % (al.get("proximo_checkin") or "—", al.get("aderencia") or "—",
