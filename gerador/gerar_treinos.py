@@ -185,6 +185,8 @@ def main():
             continue
 
         html = template
+        # namespace de armazenamento por aluna (isola metas/cargas/fotos/conquistas no navegador)
+        html = html.replace("var STORE_NS = 'demo';", "var STORE_NS = '%s';" % slug(nome))
         html = html.replace("João Silva", nome)
         # iniciais do avatar
         ini = "".join(w[0] for w in nome.split()[:2]).upper() or "AL"
