@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Gera o app de cada aluno a partir da planilha modelo-treinos.xlsx
 # Uso:  python gerar_treinos.py
-import json, re, os, unicodedata, sys
+import json, re, os, unicodedata, sys, shutil
 from openpyxl import load_workbook
 
 BASE = os.path.dirname(os.path.abspath(__file__))
@@ -345,6 +345,11 @@ def main():
         os.makedirs(pasta, exist_ok=True)
         with open(os.path.join(pasta, "index.html"), "w", encoding="utf-8") as f:
             f.write(html)
+        # copia ícone do app + manifest pra pasta do aluno (tela inicial com a logo)
+        for asset in ("icon-180.png", "icon-192.png", "icon-512.png", "manifest.json"):
+            src = os.path.join(BASE, "..", asset)
+            if os.path.exists(src):
+                shutil.copy(src, os.path.join(pasta, asset))
         gerados += 1
         print("  ✓ %s  ->  alunos/%s/index.html  (%d dias, %d exercícios)" %
               (nome, slug(nome), len(treino), sum(len(d["exercicios"]) for d in treino)))
