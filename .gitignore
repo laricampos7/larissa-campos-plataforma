@@ -1,0 +1,7 @@
+# Fichas de anamnese e documentos com dados pessoais dos alunos — NUNCA publicar
+gerador/alunos/**/anamnese-*.pdf
+**/anamnese-*.pdf
+
+# Arquivos temporários
+gerador/_*.py
+*_temp.*

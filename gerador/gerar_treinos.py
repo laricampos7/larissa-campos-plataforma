@@ -155,6 +155,31 @@ def aplicar_avaliacao(html, rows):
     return html
 
 
+def avaliacao_placeholder(html):
+    """Aluna SEM linhas na aba Avaliacao: remove os blocos de EXEMPLO
+    (KPIs do topo, gráfico de 12 semanas, composição e medidas) para não
+    exibir dados que não são dela, e mostra um aviso amigável."""
+    aviso = ('<div class="card glow" id="evalChart" style="margin-bottom:16px">'
+             '<h3>COMPOSIÇÃO CORPORAL</h3>'
+             '<p style="color:var(--txt-dim);font-size:14px;line-height:1.6;margin-top:8px">'
+             '📋 Sua avaliação física ainda não foi cadastrada. Assim que fizermos a sua '
+             'primeira avaliação, os dados de composição corporal e medidas aparecem aqui, '
+             'com a sua evolução início → agora.</p>'
+             '<!--/evalChart--></div>')
+    # troca o gráfico de exemplo pelo aviso
+    html = re.sub(r'<div class="card glow" id="evalChart".*?<!--/evalChart--></div>',
+                  lambda m: aviso, html, count=1, flags=re.S)
+    # remove os KPIs de composição de exemplo do topo
+    html = re.sub(r'\s*<div class="grid g4" id="kpiTop".*?<!--/kpiTop--></div>',
+                  "", html, count=1, flags=re.S)
+    # remove composição e medidas de exemplo
+    html = re.sub(r'<div class="card glow" id="evalComp">.*?<!--/evalComp--></div>',
+                  "", html, count=1, flags=re.S)
+    html = re.sub(r'<div class="card glow" id="evalMed">.*?<!--/evalMed--></div>',
+                  "", html, count=1, flags=re.S)
+    return html
+
+
 def main():
     if not os.path.exists(XLSX):
         sys.exit("Planilha não encontrada: " + XLSX)
@@ -310,6 +335,8 @@ def main():
         # avaliação física → composição corporal + circunferências (e remove o gráfico de exemplo)
         if aval:
             html = aplicar_avaliacao(html, aval)
+        else:
+            html = avaliacao_placeholder(html)
 
         novo_treino = "var TREINO = " + json.dumps(treino, ensure_ascii=False, separators=(",", ":")) + ";"
         html = re.sub(r"^var TREINO = .*;$", lambda m: novo_treino, html, count=1, flags=re.M)
