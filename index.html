@@ -40,13 +40,15 @@
     flex:1 1 auto; display:flex; flex-direction:column; justify-content:center;
     padding:48px 56px; max-width:640px;
   }
+  .brand-row{display:flex; align-items:center; gap:18px; margin-bottom:18px}
   .logo{
-    width:96px; height:96px; border-radius:24px; object-fit:cover; padding:7px;
-    background:#16161A; margin-bottom:26px;
+    width:84px; height:84px; border-radius:22px; object-fit:cover; padding:6px;
+    background:#16161A; flex-shrink:0;
     box-shadow:0 12px 34px -12px color-mix(in srgb,var(--brand) 60%,transparent);
   }
   .tag{font-size:12px; letter-spacing:4px; text-transform:uppercase; color:var(--brand); font-weight:700}
-  h1{font-size:40px; line-height:1.05; margin:8px 0 14px; letter-spacing:.5px}
+  h1{font-size:36px; line-height:1.05; margin:4px 0 0; letter-spacing:.5px}
+  .sub{margin-top:14px}
   .sub{color:var(--dim); font-size:17px; line-height:1.6; margin-bottom:30px; max-width:440px}
   .card{
     background:var(--card); border:1px solid var(--line); border-radius:20px;
@@ -75,9 +77,10 @@
       padding:0 24px 46px; margin-top:-66px; max-width:none;
       align-items:center; text-align:center;
     }
-    .logo{width:82px; height:82px; margin-bottom:16px; position:relative; z-index:2}
+    .brand-row{justify-content:center; margin-bottom:16px; position:relative; z-index:2; gap:14px}
+    .logo{width:74px; height:74px}
     .tag{font-size:11px}
-    h1{font-size:30px}
+    h1{font-size:27px}
     .sub{font-size:15.5px; margin-left:auto; margin-right:auto}
     .card{margin-left:auto; margin-right:auto; text-align:center}
     .card::before{left:0; right:0}
@@ -91,9 +94,13 @@
       <img src="larissa.jpg" alt="Larissa de Campos">
     </div>
     <div class="content">
-      <img class="logo" src="icon-512.png" alt="Logo">
-      <div class="tag">Consultoria Esportiva</div>
-      <h1>Larissa<br>de Campos</h1>
+      <div class="brand-row">
+        <img class="logo" src="icon-512.png" alt="Logo">
+        <div>
+          <div class="tag">Consultoria Esportiva</div>
+          <h1>Larissa de Campos</h1>
+        </div>
+      </div>
       <p class="sub">Treino personalizado, acompanhamento de verdade e resultados que duram.</p>
 
       <div class="card">
