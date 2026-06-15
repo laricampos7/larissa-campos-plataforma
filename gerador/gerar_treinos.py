@@ -5,7 +5,7 @@ import json, re, os, unicodedata, sys, shutil
 from openpyxl import load_workbook
 
 BASE = os.path.dirname(os.path.abspath(__file__))
-TEMPLATE = os.path.join(BASE, "..", "index.html")     # o app serve de modelo
+TEMPLATE = os.path.join(BASE, "modelo-app.html")      # molde do app (era ../index.html; separado da landing em 2026-06-15)
 XLSX = os.path.join(BASE, "modelo-treinos.xlsx")
 OUT = os.path.join(BASE, "alunos")
 
