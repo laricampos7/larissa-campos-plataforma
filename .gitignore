@@ -5,3 +5,7 @@ gerador/alunos/**/anamnese-*.pdf
 # Arquivos temporários
 gerador/_*.py
 *_temp.*
+gerador/modelo-treinos.backup-*.xlsx
+
+# Base PRIVADA dos agentes (preços, planos, links de pagamento) — só no seu PC, NUNCA publicar
+agentes/_privado/
