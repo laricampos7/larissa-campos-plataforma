@@ -860,11 +860,47 @@ function mostrarFoto(box,src){
   var old=box.querySelector('img.shot');if(old)old.remove();
   var im=document.createElement('img');im.className='shot';im.src=src;box.appendChild(im);
 }
-function flashOk(box){
-  var old=box.querySelector('.photo-ok');if(old)old.remove();
-  var b=document.createElement('div');b.className='photo-ok';
-  b.textContent=SHEETS_URL?'✓ enviada':'✓ salva no aparelho';
-  box.appendChild(b);setTimeout(function(){if(b.parentNode)b.remove();},2600);
+function fotoPendKey(slot){return nsKey('fotopend:'+alunoNome()+':'+slot);}
+// estado = 'enviando' | 'ok' | 'falha'
+function statusFoto(box,estado){
+  var old=box.querySelector('.photo-ok,.photo-retry');if(old)old.remove();
+  if(estado==='ok'){
+    var b=document.createElement('div');b.className='photo-ok';
+    b.textContent=SHEETS_URL?'✓ enviada':'✓ salva no aparelho';
+    box.appendChild(b);setTimeout(function(){if(b.parentNode)b.remove();},2600);
+  }else if(estado==='enviando'){
+    var b=document.createElement('div');b.className='photo-ok';
+    b.style.background='var(--txt-dim)';b.textContent='enviando…';box.appendChild(b);
+  }else if(estado==='falha'){
+    var slot=box.getAttribute('data-slot')||'Foto';
+    var btn=document.createElement('button');btn.type='button';btn.className='photo-retry';
+    btn.textContent='⚠ não enviou · tocar p/ reenviar';
+    btn.setAttribute('style','position:absolute;left:6px;right:6px;bottom:6px;border:none;border-radius:8px;padding:7px 4px;font-family:Sora;font-size:10px;font-weight:700;line-height:1.2;cursor:pointer;background:#c0392b;color:#fff;z-index:3');
+    btn.onclick=function(ev){ev.preventDefault();ev.stopPropagation();reenviarFoto(slot);};
+    box.appendChild(btn);
+  }
+}
+function postFoto(slot,full){
+  if(!SHEETS_URL) return Promise.resolve('local');
+  if(!navigator.onLine) return Promise.reject('offline');
+  return fetch(SHEETS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({aluno:alunoNome(),tipo:'foto',item:slot,valor:'',detalhes:slot,
+      imagem:(full.split(',')[1]||''),
+      arquivo:(alunoNome()+' - '+slot).replace(/[^\wÀ-ÿ \-]/g,'')+'.jpg'})});
+}
+function enviarComStatus(box,slot,full){
+  try{localStorage.setItem(fotoPendKey(slot),full);}catch(e){}
+  statusFoto(box,'enviando');
+  postFoto(slot,full).then(function(){
+    try{localStorage.removeItem(fotoPendKey(slot));}catch(e){}
+    statusFoto(box,'ok');
+  }).catch(function(){ statusFoto(box,'falha'); });
+}
+function reenviarFoto(slot){
+  var box=document.querySelector('.photo[data-slot="'+slot+'"]');if(!box)return;
+  var full=null;try{full=localStorage.getItem(fotoPendKey(slot));}catch(e){}
+  if(!full){var inp=box.querySelector('input');if(inp)inp.click();return;}
+  enviarComStatus(box,slot,full);
 }
 function enviarFoto(input){
   var file=input.files&&input.files[0];if(!file)return;
@@ -876,13 +912,8 @@ function enviarFoto(input){
       var full=resizeToDataURL(img,1280,0.82),thumb=resizeToDataURL(img,240,0.7);
       mostrarFoto(box,thumb);
       try{localStorage.setItem(fotoKey(slot),thumb);}catch(e){}
-      if(SHEETS_URL){
-        try{fetch(SHEETS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},
-          body:JSON.stringify({aluno:alunoNome(),tipo:'foto',item:slot,valor:'',detalhes:slot,
-            imagem:(full.split(',')[1]||''),
-            arquivo:(alunoNome()+' - '+slot).replace(/[^\wÀ-ÿ \-]/g,'')+'.jpg'})});}catch(e){}
-      }
-      flashOk(box);
+      if(SHEETS_URL){ enviarComStatus(box,slot,full); }
+      else { statusFoto(box,'ok'); }
     };
     img.src=ev.target.result;
   };
@@ -891,9 +922,11 @@ function enviarFoto(input){
 function carregarFotos(){
   var slots=document.querySelectorAll('.photo[data-slot]');
   for(var i=0;i<slots.length;i++){
-    var box=slots[i],v=null;
-    try{v=localStorage.getItem(fotoKey(box.getAttribute('data-slot')));}catch(e){}
+    var box=slots[i],slot=box.getAttribute('data-slot'),v=null,pend=null;
+    try{v=localStorage.getItem(fotoKey(slot));}catch(e){}
     if(v)mostrarFoto(box,v);
+    try{pend=localStorage.getItem(fotoPendKey(slot));}catch(e){}
+    if(pend)statusFoto(box,'falha');
   }
 }
 carregarFotos();
