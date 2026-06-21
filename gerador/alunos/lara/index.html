@@ -542,7 +542,7 @@ textarea:focus{outline:none;border-color:var(--brand)}
     <h2 class="section-title">Treino da semana</h2>
     <p class="sub">Toque no ícone de vídeo para ver a execução de cada exercício. Cargas e RPE ajustados ao seu momento.</p>
 
-    <button class="pdf-btn" onclick="window.print()">
+    <button class="pdf-btn" onclick="baixarPDF()">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
       Baixar treino em PDF
     </button>
@@ -641,6 +641,8 @@ textarea:focus{outline:none;border-color:var(--brand)}
 </div>
 
 <div class="toast" id="toast">✓ Check-in enviado! Seu treinador foi notificado.</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
 // --- tabs principais ---
@@ -933,6 +935,70 @@ function carregarFotos(){
   }
 }
 carregarFotos();
+// ============ PDF DO TREINO (gerado no app, cores garantidas no celular) ============
+function pdfMeta(ex){
+  var p=[];
+  if(ex.grupo)p.push(ex.grupo);
+  var sr=(ex.series||'')+(ex.reps?(' × '+ex.reps):'');
+  if(sr.trim())p.push(sr.trim());
+  if(ex.rpe)p.push('RPE '+ex.rpe);
+  return p.join(' · ');
+}
+function baixarPDF(){
+  if(typeof html2canvas==='undefined'||!window.jspdf){toast('Carregando recursos do PDF, tente de novo em 2 seg.');return;}
+  var btn=document.querySelector('.pdf-btn'),old=btn?btn.innerHTML:'';
+  if(btn){btn.disabled=true;btn.style.opacity='.7';btn.innerHTML='Gerando PDF…';}
+  var nome=alunoNome();
+  function card(ex){
+    var dica=ex.dica?('<div style="font-size:12px;color:#555;margin-top:3px;line-height:1.35">'+esc(ex.dica)+'</div>'):'';
+    return '<div style="background:#f4f4f5;border:1px solid #dcdce0;border-left:4px solid #111;border-radius:6px;padding:9px 12px;margin-bottom:7px">'
+      +'<div style="font-size:11px;color:#444;font-weight:bold;letter-spacing:.3px">'+esc(pdfMeta(ex))+'</div>'
+      +'<div style="font-family:Anton;font-size:17px;color:#111;line-height:1.15;margin-top:2px">'+esc(ex.nome)+'</div>'+dica+'</div>';
+  }
+  var units='<div class="pdf-unit"><div style="border-bottom:3px solid #FF1940;padding-bottom:10px;margin-bottom:4px">'
+    +'<div style="font-family:Anton;font-size:23px;color:#111;letter-spacing:.5px">LARISSA CAMPOS · CONSULTORIA ESPORTIVA</div>'
+    +'<div style="font-size:13px;color:#FF1940;font-weight:bold;margin-top:5px">Plano de treino · '+esc(nome)+'</div></div></div>';
+  (typeof TREINO!=='undefined'?TREINO:[]).forEach(function(d){
+    var exs=d.exercicios||[];
+    var title='<div style="font-family:Anton;font-size:15px;color:#fff;background:#FF1940;padding:8px 12px;border-radius:6px;margin:16px 0 8px;letter-spacing:.5px">'+esc(d.titulo||d.label||('Dia '+d.dia))+'</div>';
+    units+='<div class="pdf-unit">'+title+(exs[0]?card(exs[0]):'')+'</div>';
+    for(var k=1;k<exs.length;k++){ units+='<div class="pdf-unit">'+card(exs[k])+'</div>'; }
+  });
+  units+='<div class="pdf-unit"><div style="margin-top:22px;border-top:1px solid #dcdce0;padding-top:10px;font-size:11px;color:#777;text-align:center">Larissa de Campos · Consultoria Esportiva · CREF 076634-G/RJ</div></div>';
+  var html='<div style="width:760px;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif;padding:26px 24px;box-sizing:border-box">'+units+'</div>';
+  var holder=document.createElement('div');
+  holder.style.cssText='position:fixed;left:-10000px;top:0;z-index:-1';
+  holder.innerHTML=html;document.body.appendChild(holder);
+  var done=function(){if(holder.parentNode)holder.parentNode.removeChild(holder);if(btn){btn.disabled=false;btn.style.opacity='1';btn.innerHTML=old;}};
+  var go=function(){
+    var target=holder.firstChild;
+    html2canvas(target,{scale:1.5,backgroundColor:'#ffffff'}).then(function(canvas){
+      var pdf=new window.jspdf.jsPDF('p','mm','a4');
+      var pw=pdf.internal.pageSize.getWidth(),ph=pdf.internal.pageSize.getHeight();
+      var sY=canvas.height/target.offsetHeight, pageHpx=ph*(canvas.width/pw);
+      var tTop=target.getBoundingClientRect().top;
+      var marks=[].slice.call(target.querySelectorAll('.pdf-unit')).map(function(u){var r=u.getBoundingClientRect();return {top:(r.top-tTop)*sY,bottom:(r.bottom-tTop)*sY};});
+      var slices=[],start=0,i=0;
+      while(i<marks.length){
+        var s=start,e=start;
+        while(i<marks.length && (marks[i].bottom-s)<=pageHpx){ e=marks[i].bottom; i++; }
+        if(e===s){ e=Math.min(s+pageHpx,canvas.height); if(marks[i]&&marks[i].bottom<=e)i++; }
+        slices.push([s,e]); start=e;
+        if(start>=canvas.height-1)break;
+      }
+      slices.forEach(function(sl,idx){
+        var h=Math.round(sl[1]-sl[0]); if(h<=0)return;
+        var c=document.createElement('canvas');c.width=canvas.width;c.height=h;
+        c.getContext('2d').drawImage(canvas,0,sl[0],canvas.width,h,0,0,canvas.width,h);
+        if(idx>0)pdf.addPage();
+        pdf.addImage(c.toDataURL('image/jpeg',0.92),'JPEG',0,0,pw,h*(pw/canvas.width),'','FAST');
+      });
+      pdf.save('Treino - '+nome+'.pdf');
+      done();
+    }).catch(function(){toast('Não consegui gerar o PDF. Tente de novo.');done();});
+  };
+  if(document.fonts&&document.fonts.ready){document.fonts.ready.then(go);}else{go();}
+}
 // ============ LIGA DA CONSISTÊNCIA ============
 function ligaNome(){return ((alunoNome()||'').trim().split(/\s+/)[0])||'Você';}
 function ligaEsc(s){return (''+s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
