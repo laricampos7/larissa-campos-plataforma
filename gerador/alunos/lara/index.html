@@ -329,23 +329,36 @@ textarea:focus{outline:none;border-color:var(--brand)}
 .pop-anim{animation:pop .28s ease}
 
 @media print{
-  @page{margin:14mm}
-  body{background:#fff !important;color:#000 !important}
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
+  @page{margin:12mm}
+  body{background:#fff !important;color:#111 !important}
   body::before,body::after{display:none !important}
   .topbar,.hero,.tabs,.day-tabs,.pdf-btn,.ex-video,.ex-load{display:none !important}
   .wrap{max-width:100% !important;padding:0 !important}
   .panel{display:none !important}
   #treino{display:block !important}
   #treino .section-title,#treino .sub{display:none !important}
-  #printHeader{display:block !important;margin-bottom:14px;border-bottom:2px solid #000;padding-bottom:10px}
-  #printHeader h1{font-family:'Anton';font-size:20px;color:#000;letter-spacing:.5px}
-  #printHeader p{font-size:12px;color:#333;margin-top:4px}
-  .day{display:block !important;page-break-inside:auto;margin-bottom:14px}
-  .day::before{content:attr(data-label);display:block;font-family:'Anton';font-size:15px;color:#000;
-    background:#eee;padding:6px 10px;border-radius:6px;margin:12px 0 8px}
-  .ex{break-inside:avoid;border:1px solid #bbb !important;background:#fff !important;color:#000 !important;margin-bottom:6px}
-  .ex *{color:#000 !important}
-  .ex-meta{color:#444 !important}
+  /* cabeçalho: título preto, detalhe vermelho */
+  #printHeader{display:block !important;margin-bottom:16px;border-bottom:3px solid #FF1940;padding-bottom:10px}
+  #printHeader h1{font-family:'Anton';font-size:22px;color:#111 !important;letter-spacing:.5px}
+  #printHeader p{font-size:12px;color:#FF1940 !important;font-weight:bold;margin-top:4px}
+  /* título do dia: faixa vermelha com texto branco */
+  .day{display:block !important;page-break-inside:auto;margin-bottom:16px}
+  .day::before{content:attr(data-label);display:block;font-family:'Anton';font-size:14px;color:#fff !important;
+    background:#FF1940 !important;padding:7px 12px;border-radius:6px;margin:14px 0 8px;letter-spacing:.5px}
+  /* card do exercício: cinza claro, borda esquerda preta */
+  .ex{break-inside:avoid;border:1px solid #dcdce0 !important;border-left:4px solid #111 !important;
+    background:#f4f4f5 !important;color:#111 !important;margin-bottom:7px;border-radius:6px}
+  .ex-name{color:#111 !important}
+  .ex-meta{color:#444 !important;font-weight:bold}
+  /* etiquetas de método: contorno vermelho */
+  .ex-tags{display:flex !important}
+  .mtag{background:#fff !important;border:1px solid #FF1940 !important;color:#FF1940 !important}
+  .mtag *{color:#FF1940 !important}
+  /* legenda dos métodos: cinza claro com detalhe vermelho */
+  .metodos-legend{background:#f4f4f5 !important;border:1px solid #dcdce0 !important;border-left:4px solid #FF1940 !important}
+  .metodos-legend *{color:#111 !important}
+  .metodos-legend h5{color:#FF1940 !important}
 }
 </style>
 </head>
