@@ -412,6 +412,11 @@ textarea:focus{outline:none;border-color:var(--brand)}
     <!-- ===== LIGA DA CONSISTÊNCIA ===== -->
     <h2 class="section-title" style="margin-top:24px">🏆 Liga da Consistência</h2>
     <p class="sub">Bora subir no placar? Cada check-in, treino e atividade que você registra vira ponto. Quem mantém a constância lidera. Tudo zera no dia 1º, então todo mês é uma disputa nova. 🔥</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px">
+      <span style="background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:20px;padding:5px 11px;font-size:12px;color:var(--txt-dim)">📋 Check-in <b style="color:var(--pos)">+25</b></span>
+      <span style="background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:20px;padding:5px 11px;font-size:12px;color:var(--txt-dim)">🏋️ Treino <b style="color:var(--pos)">+12</b>/dia</span>
+      <span style="background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:20px;padding:5px 11px;font-size:12px;color:var(--txt-dim)">🎾 Atividade <b style="color:var(--pos)">+12</b> · máx 2/dia</span>
+    </div>
     <div class="card glow" id="ligaOptin" style="margin-bottom:14px"></div>
     <div class="card glow" id="ligaRank" style="margin-bottom:18px"><p class="sub" style="margin:0">Carregando ranking…</p></div>
 
@@ -559,6 +564,7 @@ textarea:focus{outline:none;border-color:var(--brand)}
         <div class="field"><label>Como você se sentiu nos treinos?</label>
           <textarea id="ckFeed" placeholder="Conte como foi sua semana de treinos, recordes, dificuldades..."></textarea></div>
         <button class="btn" onclick="enviarCheckin()">Enviar check-in →</button>
+        <p style="font-size:12px;color:var(--txt-dim);margin-top:10px">Fazer o check-in vale <b style="color:var(--pos)">+25 pts</b> na Liga</p>
       </div>
     </div>
 
@@ -585,6 +591,7 @@ textarea:focus{outline:none;border-color:var(--brand)}
         </div>
         <p id="actPreview" style="font-size:12.5px;color:var(--txt-dim);margin:14px 0"></p>
         <button class="btn" onclick="logAtividade()">+ Adicionar atividade</button>
+        <p style="font-size:12px;color:var(--txt-dim);margin-top:10px">Cada atividade vale <b style="color:var(--pos)">+12 pts</b> na Liga (até 2 por dia)</p>
       </div>
       <div class="card glow">
         <h3>GASTO DOS ÚLTIMOS 7 DIAS</h3>
