@@ -441,15 +441,15 @@ textarea:focus{outline:none;border-color:var(--brand)}
         <div class="ring">
           <svg width="104" height="104" viewBox="0 0 104 104">
             <circle cx="52" cy="52" r="44" fill="none" stroke="var(--line)" stroke-width="10"/>
-            <circle cx="52" cy="52" r="44" fill="none" stroke="var(--pos)" stroke-width="10"
-              stroke-linecap="round" stroke-dasharray="276" stroke-dashoffset="22"/>
+            <circle id="ringCircle" cx="52" cy="52" r="44" fill="none" stroke="var(--pos)" stroke-width="10"
+              stroke-linecap="round" stroke-dasharray="276" stroke-dashoffset="276"/>
           </svg>
-          <div class="ring-label"><b>92%</b><span>aderência</span></div>
+          <div class="ring-label"><b id="ringPct">—</b><span>aderência</span></div>
         </div>
         <div class="ring-text">
           <h3 style="margin-bottom:8px">CONSTÂNCIA DO MÊS</h3>
-          <p style="font-size:13.5px;color:var(--txt-dim);line-height:1.6">18 de 20 sessões concluídas. Sua maior sequência foi de <b style="color:var(--pos)">9 treinos</b> seguidos.</p>
-          <p style="font-size:13.5px;color:var(--txt-dim);line-height:1.6;margin-top:8px">Continue assim — a consistência é o que gera o resultado.</p>
+          <p id="ringText" style="font-size:13.5px;color:var(--txt-dim);line-height:1.6">Calculando sua constância...</p>
+          <p style="font-size:13.5px;color:var(--txt-dim);line-height:1.6;margin-top:8px">Continue assim, a consistência é o que gera o resultado.</p>
         </div>
       </div>
 
@@ -1070,16 +1070,25 @@ function gMetaDone(nome){var d=gGet('lc_metas_list',[]);if(d.indexOf(nome)<0){d.
 function updateAderencia(){
   // Aderência (30d) = treinos marcados nos últimos 30 dias ÷ previstos no período (planned/semana).
   // Se a treinadora fixou ADER_MANUAL na planilha, usa esse valor; senão calcula sozinho.
-  var el=document.getElementById('heroAder');if(!el)return;
   var pos='<small style="color:var(--pos)">%</small>';
-  if(String(ADER_MANUAL).trim()!==''){el.innerHTML=String(ADER_MANUAL).trim().replace('%','')+pos;return;}
+  var manual=String(ADER_MANUAL).trim();
   var days=gGet('lc_train_days',[]);
   var planned=(typeof TREINO!=='undefined'&&TREINO.length)?TREINO.length:0;
-  if(!days.length||!planned){el.innerHTML='—';return;}
-  var cutoff=Date.now()-30*86400000,done=0;
-  days.forEach(function(d){var p=String(d).split('-');var t=new Date(+p[0],+p[1]-1,+p[2]).getTime();if(t>=cutoff)done++;});
-  var pct=Math.max(0,Math.min(100,Math.round(done/(planned*30/7)*100)));
-  el.innerHTML=pct+pos;
+  var pct=null,done=0;
+  if(manual!==''){pct=Math.max(0,Math.min(100,parseInt(manual.replace(/\D/g,''))||0));}
+  else if(days.length&&planned){
+    var cutoff=Date.now()-30*86400000;
+    days.forEach(function(d){var p=String(d).split('-');if(new Date(+p[0],+p[1]-1,+p[2]).getTime()>=cutoff)done++;});
+    pct=Math.max(0,Math.min(100,Math.round(done/(planned*30/7)*100)));
+  }
+  var hero=document.getElementById('heroAder');if(hero)hero.innerHTML=(pct==null?'—':pct+pos);
+  var rp=document.getElementById('ringPct');if(rp)rp.textContent=(pct==null?'—':pct+'%');
+  var rc=document.getElementById('ringCircle');if(rc)rc.setAttribute('stroke-dashoffset',pct==null?276:Math.round(276*(1-pct/100)));
+  var rt=document.getElementById('ringText');
+  if(rt){
+    if(pct==null){rt.innerHTML='Marque seus treinos registrando a carga na aba Treino para acompanhar sua constância aqui.';}
+    else{var s=gStats();rt.innerHTML='Você fez <b style="color:var(--pos)">'+done+(done===1?' treino':' treinos')+'</b> nos últimos 30 dias. Sequência atual: <b style="color:var(--pos)">'+s.streak+(s.streak===1?' semana':' semanas')+'</b>.';}
+  }
 }
 function gStats(){
   var days=gGet('lc_train_days',[]),wks={};days.forEach(function(d){wks[gWk(d)]=1;});
