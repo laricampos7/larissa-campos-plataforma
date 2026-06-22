@@ -600,7 +600,7 @@ textarea:focus{outline:none;border-color:var(--brand)}
       <div class="card glow kpi"><h3>HOJE</h3><b id="actHoje">0</b><small>kcal extras</small></div>
       <div class="card glow kpi"><h3>SEMANA</h3><b id="actSemana">0</b><small>kcal acumuladas</small></div>
       <div class="card glow kpi"><h3>MÉDIA/DIA</h3><b id="actMedia">0</b><small>kcal (7 dias)</small></div>
-      <div class="card glow kpi"><h3>SEU PESO</h3><b><input id="actPeso" type="number" value="78.4" step="0.1" style="width:78px;background:transparent;border:none;color:var(--txt);font-family:Anton;font-size:34px" oninput="renderAct()"></b><small>kg (p/ cálculo)</small></div>
+      <div class="card glow kpi"><h3>SEU PESO</h3><b><input id="actPeso" type="number" value="" placeholder="--" step="0.1" style="width:78px;background:transparent;border:none;color:var(--txt);font-family:Anton;font-size:34px" oninput="renderAct()"></b><small>kg (p/ cálculo)</small></div>
     </div>
 
     <div class="grid g2">
@@ -776,10 +776,7 @@ const METS=[
   {n:'CrossFit',met:8.0,ic:'🏋️‍♀️'},{n:'Aula aeróbica',met:7.3,ic:'🤸‍♀️'}
 ];
 const DIAS=['Hoje','Ontem','2 dias atrás','3 dias atrás','4 dias atrás','5 dias atrás','6 dias atrás'];
-let acts = store.get('lc_acts',[
-  {tipo:2,min:35,dia:0},{tipo:5,min:50,dia:0},{tipo:0,min:40,dia:1},
-  {tipo:3,min:45,dia:2},{tipo:5,min:55,dia:2},{tipo:6,min:30,dia:4},{tipo:2,min:30,dia:6}
-]);
+let acts = store.get('lc_acts',[]);
 function saveActs(){store.set('lc_acts',acts);}
 function peso(){return parseFloat(document.getElementById('actPeso').value)||70;}
 function kcalOf(a){return Math.round(METS[a.tipo].met*peso()*(a.min/60));}
