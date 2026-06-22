@@ -575,7 +575,7 @@ textarea:focus{outline:none;border-color:var(--brand)}
       <div class="card glow kpi"><h3>HOJE</h3><b id="actHoje">0</b><small>kcal extras</small></div>
       <div class="card glow kpi"><h3>SEMANA</h3><b id="actSemana">0</b><small>kcal acumuladas</small></div>
       <div class="card glow kpi"><h3>MÉDIA/DIA</h3><b id="actMedia">0</b><small>kcal (7 dias)</small></div>
-      <div class="card glow kpi"><h3>SEU PESO</h3><b><input id="actPeso" type="number" value="" placeholder="--" step="0.1" style="width:78px;background:transparent;border:none;color:var(--txt);font-family:Anton;font-size:34px" oninput="renderAct()"></b><small>kg (p/ cálculo)</small></div>
+      <div class="card glow kpi"><h3>SEU PESO</h3><b><input id="actPeso" type="number" value="" placeholder="--" step="0.1" style="width:78px;background:transparent;border:none;color:var(--txt);font-family:Anton;font-size:34px" oninput="salvarPeso();renderAct()"></b><small>kg (p/ cálculo)</small></div>
     </div>
 
     <div class="grid g2">
@@ -750,6 +750,7 @@ const METS=[
 const DIAS=['Hoje','Ontem','2 dias atrás','3 dias atrás','4 dias atrás','5 dias atrás','6 dias atrás'];
 let acts = store.get('lc_acts',[]);
 function saveActs(){store.set('lc_acts',acts);}
+function salvarPeso(){try{store.set('lc_peso',document.getElementById('actPeso').value);}catch(e){}}
 function peso(){return parseFloat(document.getElementById('actPeso').value)||70;}
 function kcalOf(a){return Math.round(METS[a.tipo].met*peso()*(a.min/60));}
 function initActSelects(){
@@ -806,13 +807,24 @@ function renderActChart(){
 // >>> COLE AQUI o link do seu Apps Script, entre as aspas. Vazio = sincronização desligada (app funciona normal, offline). <<<
 var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzACgFyRiqycD8r9Kc1NzBdfAMvuWAASSNa9RhILOWj6VdhaHTZ2t_4xwPcmmWLFJI/exec';
 function alunoNome(){var el=document.querySelector('.client-chip b');return el?el.textContent.trim():'Aluno';}
+function syncQKey(){return nsKey('lc_sync_queue');}
+function syncEnqueue(p){try{var q=JSON.parse(localStorage.getItem(syncQKey())||'[]');q.push(p);localStorage.setItem(syncQKey(),JSON.stringify(q.slice(-50)));}catch(e){}}
+function syncSend(p){return fetch(SHEETS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)});}
+function syncFlush(){
+  if(!SHEETS_URL||!navigator.onLine)return;
+  var q;try{q=JSON.parse(localStorage.getItem(syncQKey())||'[]');}catch(e){q=[];}
+  if(!q.length)return;
+  try{localStorage.setItem(syncQKey(),'[]');}catch(e){}
+  q.forEach(function(p){syncSend(p).catch(function(){syncEnqueue(p);});});
+}
 function syncSheets(tipo,item,valor,detalhes){
   if(!SHEETS_URL)return;
-  try{
-    fetch(SHEETS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify({aluno:alunoNome(),tipo:tipo,item:item||'',valor:String(valor==null?'':valor),detalhes:detalhes||''})});
-  }catch(e){}
+  var p={aluno:alunoNome(),tipo:tipo,item:item||'',valor:String(valor==null?'':valor),detalhes:detalhes||''};
+  if(!navigator.onLine){syncEnqueue(p);return;}
+  syncSend(p).catch(function(){syncEnqueue(p);});
+  syncFlush();
 }
+window.addEventListener('online',syncFlush);
 // ============ ENVIO DE FOTOS PARA O GOOGLE DRIVE ============
 function fotoKey(slot){return nsKey('foto:'+alunoNome()+':'+slot);}
 function resizeToDataURL(img,max,q){
@@ -1107,7 +1119,7 @@ function enviarCheckin(){
   var peso=v('ckPeso');
   gAddCheckin();
   syncSheets('Check-in', 'Peso '+peso, peso, 'Energia '+v('ckEnergia')+'/10 · Sono '+v('ckSono')+'/10 · Dores '+v('ckDores')+'/10 · Dieta '+v('ckDieta')+'/10. '+v('ckFeed'));
-  toast('✓ Check-in enviado! Seu treinador foi notificado.');renderGami();
+  toast(navigator.onLine?'✓ Check-in enviado! Seu treinador foi notificado.':'✓ Check-in salvo. Vai ser enviado assim que você estiver com internet.');renderGami();
 }
 function checkMeta(i,val){if(val>=100){var nome=(typeof goals!=='undefined'&&goals[i]&&goals[i].name)?goals[i].name:('Meta '+(i+1));if(gMetaDone(nome)){confetti();toast('🎯 Meta batida: '+nome+'!');renderGami();}}}
 function renderGami(){
@@ -1160,7 +1172,9 @@ renderGoals();
 renderTreino();
 renderGami();
 initActSelects();
+(function(){var p=store.get('lc_peso','');var e=document.getElementById('actPeso');if(e&&p)e.value=p;})();
 renderAct();
+syncFlush();
 
 // botoes crescem ao clicar
 document.addEventListener('click',function(e){
