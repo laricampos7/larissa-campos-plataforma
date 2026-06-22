@@ -180,6 +180,47 @@ def avaliacao_placeholder(html):
     return html
 
 
+def macrociclo_html(rows, semana_atual):
+    """Monta a linha do tempo do macrociclo a partir das linhas da aba Periodizacao."""
+    if not rows:
+        return ""
+    total = 0
+    for r in rows:
+        for n in re.findall(r"\d+", r.get("semanas", "")):
+            total = max(total, int(n))
+    sa = int(re.sub(r"\D", "", str(semana_atual or "")) or 0)
+    if not sa:
+        for r in rows:
+            if (r.get("status", "") or "").strip().lower() == "agora":
+                ns = re.findall(r"\d+", r.get("semanas", ""))
+                if ns:
+                    sa = int(ns[0])
+                break
+    pct = max(3, min(100, round(sa / total * 100))) if total else 0
+    head = ('<h3 class="section-title" style="font-size:16px;margin-top:26px">Seu macrociclo</h3>'
+            '<div class="card glow" style="margin-bottom:14px">'
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+            '<h3 style="margin:0">PROGRESSO DO MACROCICLO</h3>'
+            '<b style="font-family:Anton;color:var(--txt);font-size:18px">Semana %s / %s</b></div>'
+            '<div class="progressbar"><i style="width:%d%%"></i></div></div>') % (sa or "-", total or "-", pct)
+    blocos = ""
+    for r in rows:
+        st = (r.get("status", "") or "").strip().lower()
+        now = " now" if st == "agora" else ""
+        badge = '<span class="badge-now">AGORA</span>' if st == "agora" else ""
+        nota = "✓ Concluído" if st == "concluido" else ("Em andamento" if st == "agora" else "")
+        wk = r.get("semanas", "")
+        if r.get("intensidade"):
+            wk += (" · " if wk else "") + r.get("intensidade")
+        if nota:
+            wk += (" · " if wk else "") + nota
+        foco = ("<h4>" + r.get("foco", "") + "</h4>") if r.get("foco") else ""
+        desc = ("<p>" + r.get("descricao", "") + "</p>") if r.get("descricao") else ""
+        blocos += ('<div class="meso%s">%s<div class="ph">%s</div>%s%s<div class="wk">%s</div></div>'
+                   % (now, badge, r.get("bloco", ""), foco, desc, wk))
+    return head + '<div class="timeline">' + blocos + "</div>"
+
+
 def main():
     if not os.path.exists(XLSX):
         sys.exit("Planilha não encontrada: " + XLSX)
@@ -199,6 +240,12 @@ def main():
             nome_a = (a.get("aluno", "") or "").strip().lower()
             if nome_a:
                 avaliacoes.setdefault(nome_a, []).append(a)
+    periodos = {}
+    if "Periodizacao" in wb.sheetnames:
+        for pr in linhas(wb["Periodizacao"]):
+            na = (pr.get("aluno", "") or "").strip().lower()
+            if na:
+                periodos.setdefault(na, []).append(pr)
 
     template = open(TEMPLATE, encoding="utf-8").read()
     os.makedirs(OUT, exist_ok=True)
@@ -337,6 +384,10 @@ def main():
             html = aplicar_avaliacao(html, aval)
         else:
             html = avaliacao_placeholder(html)
+
+        # macrociclo personalizado (aba Periodizacao); vazio = placeholder some
+        html = html.replace("<!--MACROCICLO-->",
+                            macrociclo_html(periodos.get(nome.lower(), []), al.get("ciclo_semana", "")))
 
         novo_treino = "var TREINO = " + json.dumps(treino, ensure_ascii=False, separators=(",", ":")) + ";"
         html = re.sub(r"^var TREINO = .*;$", lambda m: novo_treino, html, count=1, flags=re.M)
