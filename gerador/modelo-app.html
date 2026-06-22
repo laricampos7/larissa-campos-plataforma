@@ -399,7 +399,6 @@ textarea:focus{outline:none;border-color:var(--brand)}
     <button class="tab" data-tab="periodizacao"><svg viewBox="0 0 24 24"><path d="M3 17l5-6 4 3 5-7 4 5"/><path d="M3 21h18"/></svg><span>Ciclo</span></button>
     <button class="tab" data-tab="treino"><svg viewBox="0 0 24 24"><path d="M6 8v8M18 8v8M4 10v4M20 10v4M6 12h12"/></svg><span>Treino</span></button>
     <button class="tab" data-tab="evolucao"><svg viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M7 16v-5M12 16V8M17 16v-7"/></svg><span>Evolução</span></button>
-    <button class="tab" data-tab="atividades"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg><span>Atividade</span></button>
     <button class="tab" data-tab="checkin"><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M21 12v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h11"/></svg><span>Check-in</span></button>
   </nav>
 
@@ -569,8 +568,32 @@ textarea:focus{outline:none;border-color:var(--brand)}
   </section>
 
   <!-- ============ ATIVIDADES / GASTO ENERGÉTICO ============ -->
-  <section class="panel" id="atividades">
-    <h2 class="section-title">Atividades & gasto energético</h2>
+  <!-- ============ CHECK-IN + ATIVIDADES ============ -->
+  <section class="panel" id="checkin">
+    <h2 class="section-title">Check-in semanal</h2>
+    <p class="sub">Suas respostas chegam direto para mim e ajustam o próximo bloco do seu treino. Leva 1 minuto.</p>
+
+    <div class="grid g2">
+      <div class="card glow">
+        <div class="field"><label>Nível de energia na semana</label>
+          <div class="range-row"><input type="range" min="1" max="10" value="8" id="ckEnergia" oninput="this.nextElementSibling.textContent=this.value"><span class="range-val">8</span></div></div>
+        <div class="field"><label>Qualidade do sono</label>
+          <div class="range-row"><input type="range" min="1" max="10" value="7" id="ckSono" oninput="this.nextElementSibling.textContent=this.value"><span class="range-val">7</span></div></div>
+        <div class="field"><label>Dores / desconfortos articulares</label>
+          <div class="range-row"><input type="range" min="1" max="10" value="2" id="ckDores" oninput="this.nextElementSibling.textContent=this.value"><span class="range-val">2</span></div></div>
+        <div class="field"><label>Aderência à dieta</label>
+          <div class="range-row"><input type="range" min="1" max="10" value="9" id="ckDieta" oninput="this.nextElementSibling.textContent=this.value"><span class="range-val">9</span></div></div>
+      </div>
+      <div class="card glow">
+        <div class="field"><label>Peso da semana (kg)</label>
+          <textarea id="ckPeso" style="min-height:auto;height:48px" placeholder="Ex: 78,4"></textarea></div>
+        <div class="field"><label>Como você se sentiu nos treinos?</label>
+          <textarea id="ckFeed" placeholder="Conte como foi sua semana de treinos, recordes, dificuldades..."></textarea></div>
+        <button class="btn" onclick="enviarCheckin()">Enviar check-in →</button>
+      </div>
+    </div>
+
+    <h2 class="section-title" style="margin-top:30px">Atividades do dia & gasto energético</h2>
     <p class="sub">Lance suas atividades do dia (caminhada, corrida, esporte, tarefas). É só escolher a atividade e informar quantos minutos você fez — o sistema estima as calorias gastas com base no tempo e no seu peso.</p>
 
     <div class="grid g4" style="margin-bottom:16px">
@@ -606,32 +629,6 @@ textarea:focus{outline:none;border-color:var(--brand)}
     </div>
   </section>
 
-  <!-- ============ CHECK-IN ============ -->
-  <section class="panel" id="checkin">
-    <h2 class="section-title">Check-in semanal</h2>
-    <p class="sub">Suas respostas chegam direto para mim e ajustam o próximo bloco do seu treino. Leva 1 minuto.</p>
-
-    <div class="grid g2">
-      <div class="card glow">
-        <div class="field"><label>Nível de energia na semana</label>
-          <div class="range-row"><input type="range" min="1" max="10" value="8" id="ckEnergia" oninput="this.nextElementSibling.textContent=this.value"><span class="range-val">8</span></div></div>
-        <div class="field"><label>Qualidade do sono</label>
-          <div class="range-row"><input type="range" min="1" max="10" value="7" id="ckSono" oninput="this.nextElementSibling.textContent=this.value"><span class="range-val">7</span></div></div>
-        <div class="field"><label>Dores / desconfortos articulares</label>
-          <div class="range-row"><input type="range" min="1" max="10" value="2" id="ckDores" oninput="this.nextElementSibling.textContent=this.value"><span class="range-val">2</span></div></div>
-        <div class="field"><label>Aderência à dieta</label>
-          <div class="range-row"><input type="range" min="1" max="10" value="9" id="ckDieta" oninput="this.nextElementSibling.textContent=this.value"><span class="range-val">9</span></div></div>
-      </div>
-      <div class="card glow">
-        <div class="field"><label>Peso da semana (kg)</label>
-          <textarea id="ckPeso" style="min-height:auto;height:48px" placeholder="Ex: 78,4"></textarea></div>
-        <div class="field"><label>Como você se sentiu nos treinos?</label>
-          <textarea id="ckFeed" placeholder="Conte como foi sua semana de treinos, recordes, dificuldades..."></textarea></div>
-        <button class="btn" onclick="enviarCheckin()">Enviar check-in →</button>
-      </div>
-    </div>
-  </section>
-
   <p class="foot">Larissa de Campos · Consultoria Esportiva · CREF 076634-G/RJ</p>
 </div>
 
@@ -647,7 +644,7 @@ document.querySelectorAll('#tabs .tab').forEach(t=>t.onclick=()=>{
   t.classList.add('active');
   document.getElementById(t.dataset.tab).classList.add('active');
   if(t.dataset.tab==='evolucao')drawChart();
-  if(t.dataset.tab==='atividades')renderActChart();
+  if(t.dataset.tab==='checkin')renderActChart();
   if(t.dataset.tab==='conquistas')renderConquistas();
   window.scrollTo({top:0,behavior:'smooth'});
 });
