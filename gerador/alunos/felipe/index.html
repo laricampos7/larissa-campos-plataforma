@@ -381,9 +381,9 @@ textarea:focus{outline:none;border-color:var(--brand)}
 
   <!-- HERO: FASE ATUAL -->
   <section class="hero">
-    <div class="hero-tag">Foco: peito, costas e pernas · Musculação 3x + CrossFit + corrida</div>
-    <h2>HIPERTROFIA E INÍCIO DE CORRIDA</h2>
-    <p>Foco em hipertrofia de peito, costas e pernas, com três dias de musculação que complementam o CrossFit de segunda e quarta, sem repetir a sobrecarga de coluna dos WODs. No sábado entra a iniciação à corrida, em base aeróbica (Z2) com progressão de volume, respeitando a recuperação. O que conta aqui é constância, técnica impecável e progressão de carga semana a semana.</p>
+    <div class="hero-tag">Foco: perda de gordura e ganho muscular · Musculação 3x + CrossFit + corrida</div>
+    <h2>PERDA DE GORDURA E GANHO MUSCULAR</h2>
+    <p>O objetivo principal do Felipe é reduzir o percentual de gordura. A musculação, em três dias (peito, costas e pernas), entra pra ganhar mais músculo e complementar o CrossFit que ele já pratica, sem repetir a sobrecarga de coluna dos WODs. A corrida no sábado e o condicionamento são a atividade extra que acelera o gasto calórico e melhora o cardio. O que sustenta o resultado é constância, técnica impecável e progressão de carga semana a semana.</p>
     <div class="hero-meta"><div><span>Próximo check-in</span><b>23/07/2026</b></div><div><span>Aderência (30d)</span><b style="color:var(--pos)" id="heroAder">—</b></div><div><span>Treinos no mês</span><b>—</b></div><div><span>% Gordura</span><b>—</b></div></div>
   </section>
 
@@ -735,7 +735,7 @@ const store={
 };
 
 // ============ METAS EDITÁVEIS (individuais por cliente) ============
-const METAS_SEED = [{"name": "Correr 5 km contínuos sem parar", "pct": 0}, {"name": "Ganhar massa em peito, costas e pernas", "pct": 0}];
+const METAS_SEED = [{"name": "Reduzir o percentual de gordura", "pct": 0}, {"name": "Ganhar massa muscular complementando o CrossFit", "pct": 0}];
 // assinatura das metas definidas pela treinadora; muda quando ela edita e republica
 const METAS_SIG = METAS_SEED.map(function(g){return g.name;}).join('|');
 let goals;
