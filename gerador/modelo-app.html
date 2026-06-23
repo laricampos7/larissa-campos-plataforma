@@ -663,7 +663,10 @@ function loadKey(dia,nome){return nsKey('lc_load_'+dia+'_'+slug(nome));}
 function getLoad(dia,nome){try{var v=localStorage.getItem(loadKey(dia,nome));return v?JSON.parse(v):null;}catch(e){return null;}}
 function setLoad(dia,nome,kg){try{var c=getLoad(dia,nome)||{hist:[]};c.hist=c.hist||[];var pmax=0;c.hist.forEach(function(x){if(x.kg>pmax)pmax=x.kg;});c.hist.push({d:Date.now(),kg:kg});if(c.hist.length>12)c.hist=c.hist.slice(-12);c.kg=kg;localStorage.setItem(loadKey(dia,nome),JSON.stringify(c));markTrain();return (pmax>0&&kg>pmax);}catch(e){return false;}}
 function videoUrl(ex){return (ex.video&&ex.video.trim())?ex.video.trim():'https://www.youtube.com/results?search_query='+encodeURIComponent(ex.nome+' execução técnica');}
-function exMeta(ex){var p=[];if(ex.series&&ex.reps)p.push(ex.series+' × '+ex.reps+' reps');else if(ex.reps)p.push(ex.reps+' reps');else if(ex.series)p.push(ex.series+' séries');if(ex.rpe)p.push(ex.rpe);return p.join(' · ');}
+function hasUnit(r){return /(km|min|seg|hora|h\b|s\b|m\b|:|toques)/i.test(String(r));}
+function exMeta(ex){var p=[];var r=ex.reps?String(ex.reps):'';if(ex.series&&r)p.push(ex.series+' × '+r+(hasUnit(r)?'':' reps'));else if(r)p.push(r+(hasUnit(r)?'':' reps'));else if(ex.series)p.push(ex.series+' séries');if(ex.rpe)p.push(ex.rpe);return p.join(' · ');}
+function regTipo(ex){var g=String(ex.grupo||'').toLowerCase();if(/aquecimento|desaquec|volta\s*[aà]\s*calma/.test(g))return 'none';if(/^\s*(cardio|corrida)\b/.test(g))return 'tempo';return 'kg';}
+function setTime(dia,nome,txt){try{var c=getLoad(dia,nome)||{hist:[]};c.hist=c.hist||[];c.hist.push({d:Date.now(),t:txt});if(c.hist.length>12)c.hist=c.hist.slice(-12);c.tempo=txt;localStorage.setItem(loadKey(dia,nome),JSON.stringify(c));markTrain();}catch(e){}}
 // ---- métodos de treino: detecta na dica e gera etiqueta + explicação ----
 var METODOS=[
   {key:'dropset',ico:'🔻',label:'Drop set',re:/drop\s*set/i,exp:'Faça as repetições até quase não aguentar, reduza a carga e continue sem descansar.'},
@@ -674,15 +677,38 @@ var METODOS=[
 ];
 var METODO_RPE={key:'rpe',ico:'🎯',label:'RPE (esforço percebido)',exp:'Escala de 0 a 10 do quanto o exercício deve ser difícil. Ex.: RPE 8 = puxado, mas você ainda faria umas 2 repetições.'};
 function exMetodos(ex){var t=String(ex.dica||'');var out=[];METODOS.forEach(function(m){if(m.re.test(t))out.push(m);});return out;}
+var PENCIL='<svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
 function renderLoad(exEl){
-  var dia=exEl.getAttribute('data-dia'),nome=exEl.getAttribute('data-nome'),l=getLoad(dia,nome),lastHtml,ctrl;
+  var dia=exEl.getAttribute('data-dia'),nome=exEl.getAttribute('data-nome'),reg=exEl.getAttribute('data-reg')||'kg';
+  var box=exEl.querySelector('.ex-load');if(!box)return;
+  if(reg==='none'){box.innerHTML='';return;}
+  var l=getLoad(dia,nome),lastHtml,ctrl;
+  if(reg==='tempo'){
+    if(l&&l.tempo!=null&&l.tempo!==''){
+      var prevt=(l.hist&&l.hist.length>=2&&l.hist[l.hist.length-2].t!=null)?l.hist[l.hist.length-2].t:null;
+      lastHtml=prevt!=null?'Anterior: <b>'+esc(prevt)+'</b>':'Registrado ✓';
+      ctrl='<button class="load-badge"><b>'+esc(l.tempo)+'</b>'+PENCIL+'</button>';
+    }else{lastHtml='Registre seu tempo';ctrl='<button class="load-btn">Registrar</button>';}
+    box.innerHTML='<span class="ex-last">'+lastHtml+'</span>'+ctrl;
+    box.querySelector('.load-btn,.load-badge').onclick=function(){startEditTime(exEl);};
+    return;
+  }
   if(l&&l.kg!=null){
     var prev=(l.hist&&l.hist.length>=2)?l.hist[l.hist.length-2].kg:null;
     lastHtml=prev!=null?'Anterior: <b>'+prev+' kg</b>':'Registrado ✓';
-    ctrl='<button class="load-badge"><b>'+l.kg+' kg</b><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>';
+    ctrl='<button class="load-badge"><b>'+l.kg+' kg</b>'+PENCIL+'</button>';
   }else{lastHtml='Registre sua carga';ctrl='<button class="load-btn">Registrar</button>';}
-  exEl.querySelector('.ex-load').innerHTML='<span class="ex-last">'+lastHtml+'</span>'+ctrl;
-  exEl.querySelector('.load-btn,.load-badge').onclick=function(){startEdit(exEl);};
+  box.innerHTML='<span class="ex-last">'+lastHtml+'</span>'+ctrl;
+  box.querySelector('.load-btn,.load-badge').onclick=function(){startEdit(exEl);};
+}
+function startEditTime(exEl){
+  var dia=exEl.getAttribute('data-dia'),nome=exEl.getAttribute('data-nome'),l=getLoad(dia,nome),val=(l&&l.tempo!=null)?l.tempo:'';
+  var load=exEl.querySelector('.ex-load');
+  load.innerHTML='<span class="ex-last">Seu tempo (ex: 28:30 ou 30 min)</span><div class="load-edit"><input type="text" value="'+esc(val)+'" placeholder="mm:ss"><button class="ok">✓</button></div>';
+  var inp=load.querySelector('input'),ok=load.querySelector('.ok');
+  inp.focus();
+  function save(){var t=String(inp.value).trim();if(t){setTime(dia,nome,t);syncSheets('Tempo',nome,t,dia);}renderLoad(exEl);renderGami();if(t)toast('✓ Tempo registrado!');}
+  ok.onclick=save;inp.onkeydown=function(e){if(e.key==='Enter')save();};
 }
 function startEdit(exEl){
   var dia=exEl.getAttribute('data-dia'),nome=exEl.getAttribute('data-nome'),l=getLoad(dia,nome),val=(l&&l.kg!=null)?l.kg:'';
@@ -701,7 +727,7 @@ function renderTreino(){
     var exs=d.exercicios.map(function(ex){
       var mts=exMetodos(ex);
       var tagsHtml=mts.length?'<div class="ex-tags">'+mts.map(function(m){return '<span class="mtag" title="'+esc(m.exp)+'"><span>'+m.ico+'</span>'+esc(m.label)+'</span>';}).join('')+'</div>':'';
-      return '<div class="ex" data-dia="'+esc(d.dia)+'" data-nome="'+esc(ex.nome)+'">'+
+      return '<div class="ex" data-dia="'+esc(d.dia)+'" data-nome="'+esc(ex.nome)+'" data-reg="'+regTipo(ex)+'">'+
         '<div class="ex-main">'+
           '<div class="ex-meta">'+esc(exMeta(ex))+'</div>'+
           '<b class="ex-name">'+esc(ex.nome)+'</b>'+
